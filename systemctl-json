@@ -28,6 +28,5 @@ fi
 RESULT="$(systemctl show "${1}" --no-page | jq --slurp --raw-input 'split("\n") | map(select(. != "") | split("=") | {"key": .[0], "value": (.[1:] | join("="))}) | from_entries')"
 
 if [ -z "${2}" ]; then
-    echo $RESULT
+    echo "$RESULT"
 fi
-else
