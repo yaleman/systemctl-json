@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ "$(which systemctl | wc -l)" -eq 0 ]; then
+    echo "Unable to find systemctl in path, bailing"
+    exit 1
+fi
+if [ "$(which jq | wc -l)" -eq 0 ]; then
+    echo "Unable to find jq in path, bailing"
+    exit 1
+fi
+
+if [ -z "${1}" ]; then
+    echo "Please specify a service"
+    exit 1
+fi
+
+if [ "$(systemctl list-units "${1}" | grep -c "${1}")" -ne 1 ]; then
+    echo "Need a more specific match... found these"
+    systemctl list-units "${1}"
+    exit 1
+fi
+
+# LOAD   = Reflects whether the unit definition was properly loaded.
+# ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
+# SUB    = The low-level unit activation state, values depend on unit type.
+
+
+RESULT="$(systemctl show "${1}" --no-page | jq --slurp --raw-input 'split("\n") | map(select(. != "") | split("=") | {"key": .[0], "value": (.[1:] | join("="))}) | from_entries')"
+
+if [ -z "${2}" ]; then
+    echo $RESULT
+fi
+else
